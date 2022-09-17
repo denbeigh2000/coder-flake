@@ -19,7 +19,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        version = import ./version.nix { inherit pkgs; };
+        versionData = import ./version.nix { inherit pkgs; };
         mkPackage = import ./package.nix;
         mkContainer = import ./container.nix;
 
@@ -28,12 +28,16 @@
             slimFmt = if slim then "-slim" else "";
             agplFmt = if agpl then "-agpl" else "";
 
-            package = mkPackage { inherit pkgs coder version slim agpl; };
+            package = mkPackage {
+              inherit pkgs coder versionData slim agpl;
+              inherit (versionData) version;
+            };
           in
           {
             "coder${slimFmt}${agplFmt}" = package;
             "container${slimFmt}${agplFmt}" = mkContainer {
-              inherit pkgs version;
+              inherit pkgs;
+              inherit (versionData) tag;
               coder = package;
             };
           };

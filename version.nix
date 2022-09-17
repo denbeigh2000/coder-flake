@@ -10,4 +10,7 @@ let
   sha = substring 0 7 coderLock.locked.rev;
 
 in
-  "${tag}+${sha}"
+{
+  inherit tag sha;
+  version = "${tag}+${sha}";
+}

@@ -1,4 +1,4 @@
-{ pkgs, coder, version }:
+{ pkgs, coder, tag }:
 let
   inherit (pkgs) bash;
   etcPasswd = pkgs.writeTextDir "etc/passwd" ''
@@ -10,7 +10,7 @@ let
 in
 pkgs.dockerTools.buildLayeredImage {
   name = "coder";
-  tag = "latest";
+  tag = "v${tag}";
 
   fakeRootCommands = ''
     mkdir -p ./home/coder
@@ -32,7 +32,7 @@ pkgs.dockerTools.buildLayeredImage {
       "org.opencontainers.image.description" = "A tool for provisioning self-hosted development environments with Terraform.";
       "org.opencontainers.image.url" = "https://github.com/coder/coder";
       "org.opencontainers.image.source" = "https://github.com/coder/coder";
-      "org.opencontainers.image.version" = version;
+      "org.opencontainers.image.version" = tag;
       "org.opencontainers.image.licenses" = "AGPL-3.0";
     };
     User = "1000:1000";
