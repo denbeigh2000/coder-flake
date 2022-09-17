@@ -1,6 +1,6 @@
 # coder-flake
 
-[Coder](github.com/coder/coder), packaged as a Nix flake.
+[Coder](https://github.com/coder/coder), packaged as a Nix flake.
 
 ## Outputs
 
