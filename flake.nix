@@ -15,22 +15,27 @@
 
   outputs = { self, nixpkgs, flake-utils, coder }:
     flake-utils.lib.eachDefaultSystem (system:
-    let
-      pkgs = import nixpkgs { inherit system; };
-      inherit (pkgs.lib.strings) removePrefix;
-      inherit (builtins) fromJSON readFile substring;
+      let
+        pkgs = import nixpkgs { inherit system; };
+        inherit (pkgs.lib.strings) removePrefix;
+        inherit (builtins) fromJSON readFile substring;
 
-      lock = fromJSON (readFile ./flake.lock);
-      coderLock = lock.nodes.coder;
-      tag = removePrefix "v" (coderLock.original.ref or "devel");
-      sha = substring 0 8 coderLock.locked.rev;
-      version = "${tag}+${sha}";
+        lock = fromJSON (readFile ./flake.lock);
+        coderLock = lock.nodes.coder;
+        tag = removePrefix "v" (coderLock.original.ref or "devel");
+        sha = substring 0 8 coderLock.locked.rev;
+        version = "${tag}+${sha}";
 
-      mkCoder = import ./build.nix;
-    in
+        mkCoder = import ./build.nix;
+        mkContainer = import ./container.nix;
+      in
       with pkgs; {
-        packages = {
-          coder = mkCoder { inherit pkgs coder version; };
+        packages = rec {
+          coder-fat = mkCoder { inherit pkgs coder version; };
+          container = mkContainer {
+            inherit pkgs version;
+            coder = coder-fat;
+          };
           coder-slim = mkCoder {
             inherit pkgs coder version;
             slim = true;

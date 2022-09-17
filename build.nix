@@ -21,7 +21,7 @@ let
   goOs = if hostPlatform.isLinux then "linux" else "darwin";
   goArchValues = {
     x86_64 = "amd64";
-    aarch64 = "arm";
+    aarch64 = "arm64";
     # TODO: Other arm architectures??
   };
 
