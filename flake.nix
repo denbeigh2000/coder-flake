@@ -22,27 +22,30 @@
         version = import ./version.nix { inherit pkgs; };
         mkPackage = import ./package.nix;
         mkContainer = import ./container.nix;
+
+        mkPackageSet = { slim ? false, agpl ? false }:
+          let
+            slimFmt = if slim then "-slim" else "";
+            agplFmt = if agpl then "-agpl" else "";
+
+            package = mkPackage { inherit pkgs coder version slim agpl; };
+          in
+          {
+            "coder${slimFmt}${agplFmt}" = package;
+            "container${slimFmt}${agplFmt}" = mkContainer {
+              inherit pkgs version;
+              coder = package;
+            };
+          };
       in
-      with pkgs; {
-        packages = rec {
-          coder-fat = mkCoder { inherit pkgs coder version; };
-          container = mkContainer {
-            inherit pkgs version;
-            coder = coder-fat;
-          };
-          coder-slim = mkCoder {
-            inherit pkgs coder version;
-            slim = true;
-          };
-          coder-agpl = mkCoder {
-            inherit pkgs coder version;
-            agpl = true;
-          };
-          coder-slim-agpl = mkCoder {
-            inherit pkgs coder version;
-            slim = true;
-            agpl = true;
-          };
-        };
+      {
+        packages =
+          (
+            mkPackageSet { } //
+            mkPackageSet { slim = true; } //
+            mkPackageSet { agpl = true; } //
+            mkPackageSet { agpl = true; slim = true; } //
+            { default = (mkPackageSet { }).coder; }
+          );
       });
 }
