@@ -8,7 +8,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     coder = {
-      url = "github:coder/coder";
+      url = "github:coder/coder/v0.8.15";
       flake = false;
     };
   };
@@ -16,8 +16,16 @@
   outputs = { self, nixpkgs, flake-utils, coder }:
     flake-utils.lib.eachDefaultSystem (system:
     let
-      version = "0.8.15";
       pkgs = import nixpkgs { inherit system; };
+      inherit (pkgs.lib.strings) removePrefix;
+      inherit (builtins) fromJSON readFile substring;
+
+      lock = fromJSON (readFile ./flake.lock);
+      coderLock = lock.nodes.coder;
+      tag = removePrefix "v" (coderLock.original.ref or "devel");
+      sha = substring 0 8 coderLock.locked.rev;
+      version = "${tag}+${sha}";
+
       mkCoder = import ./build.nix;
     in
       with pkgs; {
