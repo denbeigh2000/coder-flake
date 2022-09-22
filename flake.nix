@@ -24,13 +24,16 @@
         mkContainer = import ./container.nix;
         mkFrontend = import ./frontend.nix;
 
-        mkPackageSet = { slim ? false, agpl ? false, frontend ? null }:
+        # TODO: Reconsider what we want to do with this function.
+        # We don't care about building containers for slim/darwin,
+        # but we do care about cross-compiling slim/fat
+        mkPackageSet = { slim ? false, agpl ? false, frontend ? null, slimBin ? null }:
           let
             slimFmt = if slim then "-slim" else "";
             agplFmt = if agpl then "-agpl" else "";
 
             package = mkPackage {
-              inherit pkgs coder versionData slim agpl frontend;
+              inherit pkgs coder versionData slim agpl frontend slimBin;
               inherit (versionData) version;
             };
           in
@@ -44,19 +47,29 @@
           };
 
         frontend = mkFrontend {
-            inherit pkgs coder;
-            inherit (versionData) version;
+          inherit pkgs coder;
+          inherit (versionData) version;
         };
+
+        slimPkg = mkPackageSet { slim = true; };
+        coderPkg = mkPackageSet { inherit frontend; slimBin = slimPkg.coder-slim; };
+
+        agplSlimPkg = mkPackageSet { agpl = true; slim = true; };
+        agplPkg = mkPackageSet
+          {
+            agpl = true;
+            inherit frontend;
+            slimBin = agplSlimPkg.coder-slim-agpl;
+          };
       in
       {
         packages =
           (
             { inherit frontend; } //
-            mkPackageSet { inherit frontend; } //
-            mkPackageSet { slim = true; } //
-            mkPackageSet { agpl = true; inherit frontend; } //
-            mkPackageSet { agpl = true; slim = true; } //
-            { default = (mkPackageSet { inherit frontend; }).coder; }
+            slimPkg // coderPkg //
+            agplSlimPkg //
+            agplPkg //
+            { default = coderPkg; }
           );
       });
 }
