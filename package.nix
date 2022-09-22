@@ -3,14 +3,16 @@
 , version
 , slim ? false
 , agpl ? false
+# TODO: Can we assert that this != null only when slim = false?
+, frontend ? null
 , ...
 }:
 
 # TODO: Enable cross compiling (it's fairly easy with Go)
 
 let
-  inherit (pkgs) buildGo119Module;
-  inherit (pkgs.stdenv) hostPlatform mkDerivation;
+  inherit (pkgs) buildGo119Module lib;
+  inherit (pkgs.stdenv) hostPlatform;
 
   versionTag = "github.com/coder/coder/buildinfo.tag=${version}";
   ldflags = "-s -w -X '${versionTag}'";
@@ -34,7 +36,11 @@ buildGo119Module {
   # and one overwrites the other.
   preBuild = ''
     subPackages="${cmdPath}"
-  '';
+  '' + (lib.optionalString (!slim) ''
+    rm -rf site/out
+    mkdir site/out
+    cp -r ${frontend}/* site/out/
+  '');
 
   # Tests depend on having home directories etc.
   doCheck = false;

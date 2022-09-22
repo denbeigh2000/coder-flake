@@ -22,14 +22,15 @@
         versionData = import ./version.nix { inherit pkgs; };
         mkPackage = import ./package.nix;
         mkContainer = import ./container.nix;
+        mkFrontend = import ./frontend.nix;
 
-        mkPackageSet = { slim ? false, agpl ? false }:
+        mkPackageSet = { slim ? false, agpl ? false, frontend ? null }:
           let
             slimFmt = if slim then "-slim" else "";
             agplFmt = if agpl then "-agpl" else "";
 
             package = mkPackage {
-              inherit pkgs coder versionData slim agpl;
+              inherit pkgs coder versionData slim agpl frontend;
               inherit (versionData) version;
             };
           in
@@ -41,15 +42,21 @@
               coder = package;
             };
           };
+
+        frontend = mkFrontend {
+            inherit pkgs coder;
+            inherit (versionData) version;
+        };
       in
       {
         packages =
           (
-            mkPackageSet { } //
+            { inherit frontend; } //
+            mkPackageSet { inherit frontend; } //
             mkPackageSet { slim = true; } //
-            mkPackageSet { agpl = true; } //
+            mkPackageSet { agpl = true; inherit frontend; } //
             mkPackageSet { agpl = true; slim = true; } //
-            { default = (mkPackageSet { }).coder; }
+            { default = (mkPackageSet { inherit frontend; }).coder; }
           );
       });
 }
