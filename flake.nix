@@ -43,9 +43,12 @@
 
       in
       {
-        packages = {
-          inherit (slim) tarball;
-          inherit (slim) checksum;
+        packages = rec {
+          container = mkContainer {
+            inherit pkgs;
+            inherit (versionData) tag;
+            coder = coder-linux-amd64;
+          };
           coder-linux-arm64 = mkCoder { GOOS = "linux"; GOARCH = "amd64"; };
           coder-linux-amd64 = mkCoder { GOOS = "linux"; GOARCH = "amd64"; };
           coder-linux-arm = mkCoder { GOOS = "linux"; GOARCH = "arm"; };

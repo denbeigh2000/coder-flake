@@ -15,17 +15,21 @@ pkgs.dockerTools.buildLayeredImage {
   fakeRootCommands = ''
     mkdir -p ./home/coder
     chown -R 1000:1000 ./home/coder
+
+    mkdir tmp
+    chmod 1777 tmp
   '';
 
   # NOTE: Coder's original image is based on Alpine and takes care to keep the
   # those users/groups, but appears to just run the executable. It's unclear if
   # the coder binary depends on having coreutils, a shell, home dir, etc.
-  contents = [ coder etcPasswd etcGroup ];
+  contents = [ coder etcPasswd etcGroup ] ++ (with pkgs; [ libstdcxx5 bash coreutils cacert ]);
 
   config = {
-    Entrypoint = [ "${coder}/bin/coder" "server" ];
+    Entrypoint = [ "${coder}/bin/coder_${tag}_amd64" "server" ];
     Environment = {
       HOME = "/home/coder";
+      SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
     };
     Labels = {
       "org.opencontainers.image.title" = "Coder";
