@@ -13,8 +13,8 @@ let
   tag = removePrefix "v" (coderLock.original.ref or "devel");
   sha = substring 0 7 coderLock.locked.rev;
 
+  version = if tag == "devel" then "devel-${sha}" else tag;
 in
 {
-  inherit tag sha;
-  version = "${tag}+${sha}";
+  inherit tag sha version;
 }

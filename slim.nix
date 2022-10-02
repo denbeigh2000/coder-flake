@@ -52,7 +52,14 @@ let
 
       postInstall = ''
         # TODO: version is currently not upstream-accurate
-        OUT_FILE=$out/bin/coder_${version}_$GOOS_$GOARCH${suffix}
+        # NOTE: Hard-coding in a name here that's in the format we require for
+        # fetching these binaries
+        FILE_NAME=coder-$GOOS-$GOARCH
+        if [[ "$GOARM" != "" ]]
+        then
+          FILE_NAME="''${FILE_NAME}v$GOARM"
+        fi
+        OUT_FILE="$out/bin/''${FILE_NAME}${suffix}"
         find $out/bin -type f | xargs -I{} mv {} $OUT_FILE
         find $out -mindepth 2 -type d | xargs rm -rf
       '';
