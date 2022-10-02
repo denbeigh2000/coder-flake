@@ -3,16 +3,16 @@
     "coder": {
       "flake": false,
       "locked": {
-        "lastModified": 1663248384,
-        "narHash": "sha256-RZQSzhJEP50VHnvVHPRFhFwvE+bEKMj4/LUs6MzYyh8=",
+        "lastModified": 1664291698,
+        "narHash": "sha256-OISOXLM5WHW8Lv/jV373wkMr8pM29M8s3k6qgTHXfPA=",
         "owner": "coder",
         "repo": "coder",
-        "rev": "9e9a9e0cd2307abacdb573f9594bb5b0ee62e805",
+        "rev": "27c8345ef2d570f6bb05d601b3aa675dd0ee4670",
         "type": "github"
       },
       "original": {
         "owner": "coder",
-        "ref": "v0.8.15",
+        "ref": "v0.9.1",
         "repo": "coder",
         "type": "github"
       }

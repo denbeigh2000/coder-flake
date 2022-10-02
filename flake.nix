@@ -5,10 +5,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils = {
       url = "github:numtide/flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     coder = {
-      url = "github:coder/coder/v0.8.15";
+      url = "github:coder/coder/v0.9.1";
       flake = false;
     };
   };
@@ -23,6 +22,11 @@
         mkPackage = import ./package.nix;
         mkContainer = import ./container.nix;
         mkFrontend = import ./frontend.nix;
+
+        slimEmbed = import ./slim.nix {
+          inherit system nixpkgs coder;
+          inherit (versionData) version;
+        };
 
         # TODO: Reconsider what we want to do with this function.
         # We don't care about building containers for slim/darwin,
@@ -51,7 +55,7 @@
           inherit (versionData) version;
         };
 
-        slimPkg = mkPackageSet { slim = true; };
+        slimPkg = mkPackageSet { slim = true; agpl = true; };
         coderPkg = mkPackageSet { inherit frontend; slimBin = slimPkg.coder-slim; };
 
         agplSlimPkg = mkPackageSet { agpl = true; slim = true; };
@@ -63,13 +67,18 @@
           };
       in
       {
-        packages =
-          (
-            { inherit frontend; } //
-            slimPkg // coderPkg //
-            agplSlimPkg //
-            agplPkg //
-            { default = coderPkg; }
-          );
+        packages = {
+          inherit frontend;
+          coder = mkPackage {
+            inherit coder pkgs frontend slimEmbed;
+            inherit (versionData) version;
+            agpl = true;
+          };
+          # { inherit frontend; } //
+          # slimPkg // coderPkg //
+          # agplSlimPkg //
+          # agplPkg //
+          # { default = coderPkg; }
+        };
       });
 }
