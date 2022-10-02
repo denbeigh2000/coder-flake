@@ -23,62 +23,41 @@
         mkContainer = import ./container.nix;
         mkFrontend = import ./frontend.nix;
 
-        slimEmbed = import ./slim.nix {
+        slim = import ./slim.nix {
           inherit system nixpkgs coder;
           inherit (versionData) version;
+          agpl = true;
         };
-
-        # TODO: Reconsider what we want to do with this function.
-        # We don't care about building containers for slim/darwin,
-        # but we do care about cross-compiling slim/fat
-        mkPackageSet = { slim ? false, agpl ? false, frontend ? null, slimBin ? null }:
-          let
-            slimFmt = if slim then "-slim" else "";
-            agplFmt = if agpl then "-agpl" else "";
-
-            package = mkPackage {
-              inherit pkgs coder versionData slim agpl frontend slimBin;
-              inherit (versionData) version;
-            };
-          in
-          {
-            "coder${slimFmt}${agplFmt}" = package;
-            "container${slimFmt}${agplFmt}" = mkContainer {
-              inherit pkgs;
-              inherit (versionData) tag;
-              coder = package;
-            };
-          };
 
         frontend = mkFrontend {
           inherit pkgs coder;
           inherit (versionData) version;
         };
 
-        slimPkg = mkPackageSet { slim = true; agpl = true; };
-        coderPkg = mkPackageSet { inherit frontend; slimBin = slimPkg.coder-slim; };
-
-        agplSlimPkg = mkPackageSet { agpl = true; slim = true; };
-        agplPkg = mkPackageSet
-          {
-            agpl = true;
-            inherit frontend;
-            slimBin = agplSlimPkg.coder-slim-agpl;
-          };
-      in
-      {
-        packages = {
-          inherit frontend;
-          coder = mkPackage {
-            inherit coder pkgs frontend slimEmbed;
+        mkCoder = {GOOS, GOARCH}:
+          mkPackage {
+            inherit coder pkgs frontend slim GOOS GOARCH;
             inherit (versionData) version;
             agpl = true;
           };
-          # { inherit frontend; } //
-          # slimPkg // coderPkg //
-          # agplSlimPkg //
-          # agplPkg //
-          # { default = coderPkg; }
+
+      in
+      {
+        packages = {
+          inherit (slim) tarball;
+          inherit (slim) checksum;
+          coder-linux-arm64 = mkCoder { GOOS = "linux"; GOARCH = "amd64"; };
+          coder-linux-amd64 = mkCoder { GOOS = "linux"; GOARCH = "amd64"; };
+          coder-linux-arm = mkCoder { GOOS = "linux"; GOARCH = "arm"; };
+          coder-darwin-arm64 = mkCoder { GOOS = "darwin"; GOARCH = "amd64"; };
+          coder-darwin-amd64 = mkCoder { GOOS = "darwin"; GOARCH = "amd64"; };
+          coder-windows-arm64 = mkCoder { GOOS = "windows"; GOARCH = "amd64"; };
+          coder-windows-amd64 = mkCoder { GOOS = "windows"; GOARCH = "amd64"; };
+          # coder = mkPackage {
+          #   inherit coder pkgs frontend slimEmbed;
+          #   inherit (versionData) version;
+          #   agpl = true;
+          # };
         };
       });
 }

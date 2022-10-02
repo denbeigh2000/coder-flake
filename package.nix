@@ -2,9 +2,10 @@
 , coder
 , version
 , frontend
-, slimEmbed
+, slim
 , GOOS
 , GOARCH
+, GOARM ? ""
 , agpl ? false
 , ...
 }:
@@ -33,6 +34,8 @@ buildGo119Module {
   tags = [ "embed" ];
   CGO_ENABLED = 0;
 
+  inherit GOOS GOARCH GOARM;
+
   vendorSha256 = "sha256-qWjRr2s6hc5+ywJK05M3LxUeKZ9L0107QH5h0nqaFSY=";
 
   # NOTE: We can't improve compilation re-use by building both enterprise
@@ -41,16 +44,20 @@ buildGo119Module {
   preBuild = ''
     subPackages="${cmdPath}"
     rm -rf site/out
-    mkdir site/out
+    mkdir -p site/out/bin
     cp -r ${frontend}/* site/out/
-    cp ${slimEmbed}/coder-slim_${version}.tar.zst site/out/coder.tar.zst
+    cp ${slim.tarball}/coder-slim_${version}.tar.zst site/out/bin/coder.tar.zst
+    cp ${slim.checksum}/coder.sha1 site/out/bin/coder.sha1
     export GOOS=${GOOS}
     export GOARCH=${GOARCH}
+    export GOARM=${GOARM}
   '';
 
   # TODO: Generate a shasum and add it to $out/
   # TODO: The output binary should contain a version
   postInstall = ''
-    find $out/bin -type f | xargs -I{} mv {} $out/bin/coder_${version}_$GOOS_$GOARCH${suffix}
+    OUT_FILE=$out/bin/coder_${version}_$GOOS_$GOARCH${suffix}
+    find $out/bin -type f | xargs -I{} mv {} $OUT_FILE
+    ${pkgs.openssl}/bin/openssl dgst -r -sha1 > $OUT_FILE.sha1
   '';
 }
