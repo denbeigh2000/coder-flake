@@ -34,11 +34,10 @@
           inherit (versionData) version;
         };
 
-        mkCoder = {GOOS, GOARCH}:
+        mkCoder = {GOOS, GOARCH, agpl ? false}:
           mkPackage {
-            inherit coder pkgs frontend slim GOOS GOARCH;
+            inherit agpl coder pkgs frontend slim GOOS GOARCH;
             inherit (versionData) version;
-            agpl = true;
           };
 
       in
@@ -56,11 +55,14 @@
           coder-darwin-amd64 = mkCoder { GOOS = "darwin"; GOARCH = "amd64"; };
           coder-windows-arm64 = mkCoder { GOOS = "windows"; GOARCH = "amd64"; };
           coder-windows-amd64 = mkCoder { GOOS = "windows"; GOARCH = "amd64"; };
-          # coder = mkPackage {
-          #   inherit coder pkgs frontend slimEmbed;
-          #   inherit (versionData) version;
-          #   agpl = true;
-          # };
+
+          coder-linux-arm64-agpl = mkCoder { GOOS = "linux"; GOARCH = "amd64"; agpl = true; };
+          coder-linux-amd64-agpl = mkCoder { GOOS = "linux"; GOARCH = "amd64"; agpl = true; };
+          coder-linux-arm-agpl = mkCoder { GOOS = "linux"; GOARCH = "arm"; agpl = true; };
+          coder-darwin-arm64-agpl = mkCoder { GOOS = "darwin"; GOARCH = "amd64"; agpl = true; };
+          coder-darwin-amd64-agpl = mkCoder { GOOS = "darwin"; GOARCH = "amd64"; agpl = true; };
+          coder-windows-arm64-agpl = mkCoder { GOOS = "windows"; GOARCH = "amd64"; agpl = true; };
+          coder-windows-amd64-agpl = mkCoder { GOOS = "windows"; GOARCH = "amd64"; agpl = true; };
         };
       });
 }
